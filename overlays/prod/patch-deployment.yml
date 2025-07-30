@@ -4,4 +4,4 @@ metadata:
   name: python-app
   namespace: ivolve
 spec:
-  replicas: 2
+  replicas: 4

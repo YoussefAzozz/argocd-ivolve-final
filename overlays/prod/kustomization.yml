@@ -5,4 +5,4 @@ patchesStrategicMerge:
   - patch-deployment.yml
 images:
   - name: 242201296834.dkr.ecr.us-east-1.amazonaws.com/python-app
-    newTag: "1"  # Update this to the version you want
+    newTag: "24"
