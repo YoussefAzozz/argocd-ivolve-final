@@ -24,10 +24,10 @@ spec:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
               - matchExpressions:
-                - key: workload
-                  operator: In
-                  values:
-                    - app
+                  - key: workload
+                    operator: In
+                    values:
+                      - app
       initContainers:
         - name: init-db
           image: mariadb:10.5
@@ -37,7 +37,6 @@ spec:
             - |
               export MARIADB_ROOT_PASSWORD=$(cat /mnt/secrets-store/MARIADB_ROOT_PASSWORD)
               export DB_PASSWORD=$(cat /mnt/secrets-store/DB_PASSWORD)
-
 
               until mysqladmin ping -h "$DB_HOST" --silent; do
                 echo "Waiting for MariaDB to be ready..."
@@ -52,17 +51,15 @@ spec:
               FLUSH PRIVILEGES;
               USE $DATABASE_NAME;
               CREATE TABLE IF NOT EXISTS users (
-              id INT AUTO_INCREMENT PRIMARY KEY,
-              username VARCHAR(255) NOT NULL,
-              email VARCHAR(255) NOT NULL
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                username VARCHAR(255) NOT NULL,
+                email VARCHAR(255) NOT NULL
               );
               EOF
-
           volumeMounts:
-          - name: secrets-store-inline
-            mountPath: "/mnt/secrets-store"
-            readOnly: true
-
+            - name: secrets-store-inline
+              mountPath: "/mnt/secrets-store"
+              readOnly: true
           env:
             - name: DB_HOST
               valueFrom:
@@ -74,13 +71,13 @@ spec:
                 configMapKeyRef:
                   name: python-config
                   key: DB_USER
-
             - name: DATABASE_NAME
               valueFrom:
                 configMapKeyRef:
                   name: python-config
                   key: DATABASE_NAME
-                  containers:
+
+      containers:
         - name: python-app
           image: 242201296834.dkr.ecr.us-east-1.amazonaws.com/python-app:1
           command:
@@ -89,33 +86,24 @@ spec:
             - |
               export DB_PASSWORD=$(cat /mnt/secrets-store/DB_PASSWORD)
               exec python app.py
-
           ports:
             - containerPort: 5000
-
           env:
-              #- name: DB_PASSWORD
-              #valueFrom:
-              #secretKeyRef:
-                  #name: python-secret
-              #key: DB_PASSWORD
-          - name: DB_HOST
-            valueFrom:
-              configMapKeyRef:
-                name: python-config
-                key: DB_HOST
-          - name: DB_USER
-            valueFrom:
-              configMapKeyRef:
-                name: python-config
-                key: DB_USER
-          - name: DATABASE_NAME
-            valueFrom:
-              configMapKeyRef:
-                name: python-config
-                key: DATABASE_NAME
-
-
+            - name: DB_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: python-config
+                  key: DB_HOST
+            - name: DB_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: python-config
+                  key: DB_USER
+            - name: DATABASE_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: python-config
+                  key: DATABASE_NAME
           resources:
             requests:
               memory: "128Mi"
@@ -123,24 +111,18 @@ spec:
             limits:
               memory: "512Mi"
               cpu: "500m"
-
           livenessProbe:
             httpGet:
               path: /healthz
               port: 5000
             initialDelaySeconds: 10
             periodSeconds: 10
-            timeoutSeconds: 3
-            failureThreshold: 3
           readinessProbe:
             httpGet:
               path: /readyz
               port: 5000
             initialDelaySeconds: 5
             periodSeconds: 5
-            timeoutSeconds: 3
-            failureThreshold: 3
-
           volumeMounts:
             - name: secrets-store-inline
               mountPath: "/mnt/secrets-store"
@@ -153,6 +135,3 @@ spec:
             readOnly: true
             volumeAttributes:
               secretProviderClass: "aws-secrets"
-            
-                  
-                  
