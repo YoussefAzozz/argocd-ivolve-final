@@ -14,29 +14,12 @@ spec:
       labels:
         app: mariadb
     spec:
-      initContainers:
-      - name: init-secret
-        image: busybox
-        command:
-          - sh
-          - -c
-          - |
-            mkdir -p /workdir
-            echo "export MARIADB_ROOT_PASSWORD=$(cat /mnt/secrets-store/MARIADB_ROOT_PASSWORD)" > /workdir/env.sh
-
-        volumeMounts:
-          - name: secrets-store-inline
-            mountPath: /mnt/secrets-store
-            readOnly: true
-          - name: shared-env
-            mountPath: /workdir
-
       serviceAccountName: secrets-sa
       tolerations:
-      - key: "workload"
-        operator: "Equal"
-        value: "database"
-        effect: "NoSchedule"
+        - key: "workload"
+          operator: "Equal"
+          value: "database"
+          effect: "NoSchedule"
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
@@ -46,9 +29,26 @@ spec:
                     operator: In
                     values:
                       - database
+
+      initContainers:
+        - name: init-secret
+          image: busybox
+          command:
+            - sh
+            - -c
+            - |
+              mkdir -p /workdir
+              echo "export MARIADB_ROOT_PASSWORD=$(cat /mnt/secrets-store/MARIADB_ROOT_PASSWORD)" > /workdir/env.sh
+          volumeMounts:
+            - name: secrets-store-inline
+              mountPath: /mnt/secrets-store
+              readOnly: true
+            - name: shared-env
+              mountPath: /workdir
+
       containers:
         - name: mariadb
-        image: mariadb:10.5
+          image: mariadb:10.5
           command:
             - sh
             - -c
@@ -57,8 +57,6 @@ spec:
               exec docker-entrypoint.sh mysqld
           ports:
             - containerPort: 3306
-
-
           volumeMounts:
             - name: secrets-store-inline
               mountPath: "/mnt/secrets-store"
@@ -67,6 +65,7 @@ spec:
               mountPath: /var/lib/mysql
             - name: shared-env
               mountPath: "/workdir"
+
       volumes:
         - name: secrets-store-inline
           csi:
@@ -77,7 +76,7 @@ spec:
 
         - name: mariadb-config
           configMap:
-          name: python-config
+            name: python-config
 
         - name: shared-env
           emptyDir: {}
@@ -91,4 +90,3 @@ spec:
         resources:
           requests:
             storage: 3Gi
-        
