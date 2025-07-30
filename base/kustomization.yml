@@ -1,0 +1,3 @@
+resources:
+  - python-app.yml            #I will change the no.of replicas or image
+ 
