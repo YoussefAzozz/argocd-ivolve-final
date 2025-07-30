@@ -109,7 +109,7 @@ spec:
               configMapKeyRef:
                 name: python-config
                 key: DB_USER
-                - name: DATABASE_NAME
+          - name: DATABASE_NAME
             valueFrom:
               configMapKeyRef:
                 name: python-config
